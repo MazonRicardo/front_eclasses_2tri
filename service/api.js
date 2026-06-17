@@ -1,6 +1,6 @@
 // BASE_URL aponta para o JSON local enquanto a API não está integrada.
 // Quando a API estiver pronta, basta trocar para: 'http://localhost:3000/api'
-const BASE_URL = 'localhost:300/api/';
+const BASE_URL = 'http://localhost:3000/api/';
 
 // Retorna todos os jogos
 async function getJogos() {
