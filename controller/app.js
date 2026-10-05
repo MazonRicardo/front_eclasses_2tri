@@ -293,39 +293,61 @@ window.fecharModal = function () {
     setTimeout(() => { modal.style.display = 'none'; }, 300);
 };
 
-window.salvarItem = function (event, colecao) {
+window.salvarItem = async function (event, colecao) {
     event.preventDefault();
-    const dados = Object.fromEntries(new FormData(event.target).entries());
-
-    const maxId = state[colecao].reduce((max, item) => (item.id > max ? item.id : max), 0);
-    dados.id = maxId + 1;
-
+    const form = event.target;
+    const dados = Object.fromEntries(new FormData(form).entries());
+  
+    // Converte campos numéricos
     if (dados.teamId) dados.teamId = Number(dados.teamId);
     if (dados.gameId) dados.gameId = Number(dados.gameId);
     if (dados.team1Id) dados.team1Id = Number(dados.team1Id);
     if (dados.team2Id) dados.team2Id = Number(dados.team2Id);
     if (dados.score1 !== undefined) dados.score1 = Number(dados.score1);
     if (dados.score2 !== undefined) dados.score2 = Number(dados.score2);
+  
+    try {
+      if (colecao === 'jogos') {
+        await criarJogo(dados);
+      } else if (colecao === 'times') {
+        await criarTime(dados);
+      } else if (colecao === 'competidores') {
+        await criarCompetidor(dados);
+      } else if (colecao === 'confrontos') {
+        await criarConfronto(dados);
+      }
+  
+      // Recarrega os dados do banco
+      await carregarDados();
+      renderizarTudo();
+      fecharModal();
+    } catch (erro) {
+      alert('Erro ao salvar: ' + erro.message);
+    }
+  };
 
-    state[colecao].push(dados);
-    renderizarTudo();
-    fecharModal();
-};
-
-window.encerrarConfrontos = function (id) {
+  window.encerrarConfrontos = async function (id) {
     const confronto = state.confrontos.find(c => c.id == id);
     if (!confronto) return;
-
+  
     const time1 = state.times.find(t => t.id == confronto.team1Id);
     const time2 = state.times.find(t => t.id == confronto.team2Id);
-
-    const placar1 = prompt(`Placar para ${time1?.name}:`, '0');
-    const placar2 = prompt(`Placar para ${time2?.name}:`, '0');
-
+  
+    const placar1 = prompt(`Placar para ${time1?.name || 'Time 1'}:`, '0');
+    const placar2 = prompt(`Placar para ${time2?.name || 'Time 2'}:`, '0');
+  
     if (placar1 !== null && placar2 !== null) {
-        confronto.score1 = Number(placar1);
-        confronto.score2 = Number(placar2);
-        confronto.status = 'finished';
+      try {
+        await atualizarConfronto(id, {
+          score1: Number(placar1),
+          score2: Number(placar2),
+          status: 'finished'
+        });
+        await carregarDados();
         renderizarTudo();
+      } catch (erro) {
+        alert('Erro ao finalizar: ' + erro.message);
+      }
     }
-};
+  };
+  

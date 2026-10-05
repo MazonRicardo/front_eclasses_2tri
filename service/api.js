@@ -21,26 +21,58 @@ async function _request(endpoint, options = {}) {
   }
 }
 
-// GET
-const getJogos = () => _request('jogos');
-const getTimes = () => _request('times');
-const getCompetidores = () => _request('competidores');
-const getConfrontos = () => _request('confrontos');
+// ========== GET ==========
+async function getJogos() {
+  return _request('jogos');
+}
+async function getTimes() {
+  return _request('times');
+}
+async function getCompetidores() {
+  return _request('competidores');
+}
+async function getConfrontos() {
+  return _request('confrontos');
+}
 
-// POST
-const criarJogo = (dados) => _request('jogos', { method: 'POST', body: JSON.stringify(dados) });
-const criarTime = (dados) => _request('times', { method: 'POST', body: JSON.stringify(dados) });
-const criarCompetidor = (dados) => _request('competidores', { method: 'POST', body: JSON.stringify(dados) });
-const criarConfronto = (dados) => _request('confrontos', { method: 'POST', body: JSON.stringify(dados) });
+// ========== POST ==========
+async function criarJogo(dados) {
+  return _request('jogos', { method: 'POST', body: JSON.stringify(dados) });
+}
+async function criarTime(dados) {
+  return _request('times', { method: 'POST', body: JSON.stringify(dados) });
+}
+async function criarCompetidor(dados) {
+  return _request('competidores', { method: 'POST', body: JSON.stringify(dados) });
+}
+async function criarConfronto(dados) {
+  return _request('confrontos', { method: 'POST', body: JSON.stringify(dados) });
+}
 
-// PUT
-const atualizarJogo = (id, dados) => _request(`jogos/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
-const atualizarTime = (id, dados) => _request(`times/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
-const atualizarCompetidor = (id, dados) => _request(`competidores/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
-const atualizarConfronto = (id, dados) => _request(`confrontos/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+// ========== PUT ==========
+async function atualizarJogo(id, dados) {
+  return _request(`jogos/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+}
+async function atualizarTime(id, dados) {
+  return _request(`times/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+}
+async function atualizarCompetidor(id, dados) {
+  return _request(`competidores/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+}
+async function atualizarConfronto(id, dados) {
+  return _request(`confrontos/${id}`, { method: 'PUT', body: JSON.stringify(dados) });
+}
 
-// DELETE
-const excluirJogo = (id) => _request(`jogos/${id}`, { method: 'DELETE' });
-const excluirTime = (id) => _request(`times/${id}`, { method: 'DELETE' });
-const excluirCompetidor = (id) => _request(`competidores/${id}`, { method: 'DELETE' });
-const excluirConfronto = (id) => _request(`confrontos/${id}`, { method: 'DELETE' });
+// ========== DELETE ==========
+async function excluirJogo(id) {
+  return _request(`jogos/${id}`, { method: 'DELETE' });
+}
+async function excluirTime(id) {
+  return _request(`times/${id}`, { method: 'DELETE' });
+}
+async function excluirCompetidor(id) {
+  return _request(`competidores/${id}`, { method: 'DELETE' });
+}
+async function excluirConfronto(id) {
+  return _request(`confrontos/${id}`, { method: 'DELETE' });
+}
