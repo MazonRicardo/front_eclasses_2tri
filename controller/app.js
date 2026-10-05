@@ -117,6 +117,10 @@ function renderizarJogos() {
             <span class="card-tag">${j.genre}</span>
             <h3>${j.name}</h3>
             <p class="subtitle">ID: ${j.id}</p>
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button class="btn-primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="abrirEdicao('jogo', ${j.id})">Editar</button>
+                <button style="padding: 4px 10px; font-size: 0.75rem; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="excluirItem('jogos', ${j.id})">Excluir</button>
+            </div>
         </div>
     `).join('');
 }
@@ -128,6 +132,10 @@ function renderizarTimes() {
             <span class="card-tag">EQUIPE</span>
             <h3>${t.name}</h3>
             <p class="subtitle">${state.competidores.filter(c => c.teamId == t.id).length} Jogadores</p>
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button class="btn-primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="abrirEdicao('time', ${t.id})">Editar</button>
+                <button style="padding: 4px 10px; font-size: 0.75rem; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="excluirItem('times', ${t.id})">Excluir</button>
+            </div>
         </div>
     `).join('');
 }
@@ -141,6 +149,10 @@ function renderizarCompetidores() {
                 <span class="card-tag">${time?.name || 'Sem Time'}</span>
                 <h3>${c.nickname}</h3>
                 <p class="subtitle">${c.name}</p>
+                <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                    <button class="btn-primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="abrirEdicao('competidor', ${c.id})">Editar</button>
+                    <button style="padding: 4px 10px; font-size: 0.75rem; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="excluirItem('competidores', ${c.id})">Excluir</button>
+                </div>
             </div>
         `;
     }).join('');
@@ -175,6 +187,10 @@ function renderizarConfrontos() {
                     ${c.status === 'scheduled'
                         ? `<button onclick="encerrarConfrontos(${c.id})" style="padding: 4px 8px; font-size: 0.7rem; margin-left: 8px;">Finalizar</button>`
                         : ''}
+                </div>
+                <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem; justify-content: center;">
+                    <button class="btn-primary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="abrirEdicao('confronto', ${c.id})">Editar</button>
+                    <button style="padding: 4px 10px; font-size: 0.75rem; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="excluirItem('confrontos', ${c.id})">Excluir</button>
                 </div>
             </div>
         `;
@@ -297,57 +313,225 @@ window.salvarItem = async function (event, colecao) {
     event.preventDefault();
     const form = event.target;
     const dados = Object.fromEntries(new FormData(form).entries());
-  
-    // Converte campos numéricos
+
     if (dados.teamId) dados.teamId = Number(dados.teamId);
     if (dados.gameId) dados.gameId = Number(dados.gameId);
     if (dados.team1Id) dados.team1Id = Number(dados.team1Id);
     if (dados.team2Id) dados.team2Id = Number(dados.team2Id);
     if (dados.score1 !== undefined) dados.score1 = Number(dados.score1);
     if (dados.score2 !== undefined) dados.score2 = Number(dados.score2);
-  
-    try {
-      if (colecao === 'jogos') {
-        await criarJogo(dados);
-      } else if (colecao === 'times') {
-        await criarTime(dados);
-      } else if (colecao === 'competidores') {
-        await criarCompetidor(dados);
-      } else if (colecao === 'confrontos') {
-        await criarConfronto(dados);
-      }
-  
-      // Recarrega os dados do banco
-      await carregarDados();
-      renderizarTudo();
-      fecharModal();
-    } catch (erro) {
-      alert('Erro ao salvar: ' + erro.message);
-    }
-  };
 
-  window.encerrarConfrontos = async function (id) {
-    const confronto = state.confrontos.find(c => c.id == id);
-    if (!confronto) return;
-  
-    const time1 = state.times.find(t => t.id == confronto.team1Id);
-    const time2 = state.times.find(t => t.id == confronto.team2Id);
-  
-    const placar1 = prompt(`Placar para ${time1?.name || 'Time 1'}:`, '0');
-    const placar2 = prompt(`Placar para ${time2?.name || 'Time 2'}:`, '0');
-  
-    if (placar1 !== null && placar2 !== null) {
-      try {
-        await atualizarConfronto(id, {
-          score1: Number(placar1),
-          score2: Number(placar2),
-          status: 'finished'
-        });
+    try {
+        if (colecao === 'jogos') await criarJogo(dados);
+        else if (colecao === 'times') await criarTime(dados);
+        else if (colecao === 'competidores') await criarCompetidor(dados);
+        else if (colecao === 'confrontos') await criarConfronto(dados);
+
         await carregarDados();
         renderizarTudo();
-      } catch (erro) {
-        alert('Erro ao finalizar: ' + erro.message);
-      }
+        fecharModal();
+    } catch (erro) {
+        alert('Erro ao salvar: ' + erro.message);
     }
-  };
-  
+};
+
+window.encerrarConfrontos = async function (id) {
+    const confronto = state.confrontos.find(c => c.id == id);
+    if (!confronto) return;
+
+    const time1 = state.times.find(t => t.id == confronto.team1Id);
+    const time2 = state.times.find(t => t.id == confronto.team2Id);
+
+    const placar1 = prompt(`Placar para ${time1?.name || 'Time 1'}:`, '0');
+    const placar2 = prompt(`Placar para ${time2?.name || 'Time 2'}:`, '0');
+
+    if (placar1 !== null && placar2 !== null) {
+        try {
+            await atualizarConfronto(id, {
+                score1: Number(placar1),
+                score2: Number(placar2),
+                status: 'finished'
+            });
+            await carregarDados();
+            renderizarTudo();
+        } catch (erro) {
+            alert('Erro ao finalizar: ' + erro.message);
+        }
+    }
+};
+
+// ========== EDITAR ==========
+window.abrirEdicao = function (tipo, id) {
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.pointerEvents = 'all';
+    }, 10);
+
+    if (tipo === 'jogo') {
+        const item = state.jogos.find(j => j.id == id);
+        formContent.innerHTML = `
+            <h2>Editar Jogo</h2>
+            <form onsubmit="atualizarItem(event, 'jogos', ${id})">
+                <div class="form-group">
+                    <label>Nome do Jogo</label>
+                    <input type="text" name="name" required value="${item.name}">
+                </div>
+                <div class="form-group">
+                    <label>Gênero</label>
+                    <input type="text" name="genre" required value="${item.genre}">
+                </div>
+                <div style="display:flex; gap: 1rem;">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        `;
+    }
+
+    if (tipo === 'time') {
+        const item = state.times.find(t => t.id == id);
+        formContent.innerHTML = `
+            <h2>Editar Time</h2>
+            <form onsubmit="atualizarItem(event, 'times', ${id})">
+                <div class="form-group">
+                    <label>Nome da Equipe</label>
+                    <input type="text" name="name" required value="${item.name}">
+                </div>
+                <div class="form-group">
+                    <label>Cor Identidade</label>
+                    <input type="color" name="color" value="${item.color}">
+                </div>
+                <div style="display:flex; gap: 1rem;">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        `;
+    }
+
+    if (tipo === 'competidor') {
+        const item = state.competidores.find(c => c.id == id);
+        formContent.innerHTML = `
+            <h2>Editar Competidor</h2>
+            <form onsubmit="atualizarItem(event, 'competidores', ${id})">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" name="name" required value="${item.name}">
+                </div>
+                <div class="form-group">
+                    <label>Nickname</label>
+                    <input type="text" name="nickname" required value="${item.nickname}">
+                </div>
+                <div class="form-group">
+                    <label>Time</label>
+                    <select name="teamId" required>
+                        ${state.times.map(t => `<option value="${t.id}" ${t.id == item.teamId ? 'selected' : ''}>${t.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div style="display:flex; gap: 1rem;">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        `;
+    }
+
+    if (tipo === 'confronto') {
+        const item = state.confrontos.find(c => c.id == id);
+        const dataValue = item.date ? new Date(item.date).toISOString().slice(0, 16) : '';
+        formContent.innerHTML = `
+            <h2>Editar Confronto</h2>
+            <form onsubmit="atualizarItem(event, 'confrontos', ${id})">
+                <div class="form-group">
+                    <label>Jogo</label>
+                    <select name="gameId" required>
+                        ${state.jogos.map(j => `<option value="${j.id}" ${j.id == item.gameId ? 'selected' : ''}>${j.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Time A</label>
+                        <select name="team1Id" required>
+                            ${state.times.map(t => `<option value="${t.id}" ${t.id == item.team1Id ? 'selected' : ''}>${t.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Time B</label>
+                        <select name="team2Id" required>
+                            ${state.times.map(t => `<option value="${t.id}" ${t.id == item.team2Id ? 'selected' : ''}>${t.name}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Placar Time A</label>
+                        <input type="number" name="score1" value="${item.score1}">
+                    </div>
+                    <div class="form-group">
+                        <label>Placar Time B</label>
+                        <input type="number" name="score2" value="${item.score2}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status">
+                        <option value="scheduled" ${item.status === 'scheduled' ? 'selected' : ''}>Agendado</option>
+                        <option value="finished" ${item.status === 'finished' ? 'selected' : ''}>Finalizado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Data/Hora</label>
+                    <input type="datetime-local" name="date" value="${dataValue}">
+                </div>
+                <div style="display:flex; gap: 1rem;">
+                    <button type="submit" class="btn-primary">Salvar</button>
+                    <button type="button" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        `;
+    }
+};
+
+window.atualizarItem = async function (event, colecao, id) {
+    event.preventDefault();
+    const form = event.target;
+    const dados = Object.fromEntries(new FormData(form).entries());
+
+    if (dados.teamId) dados.teamId = Number(dados.teamId);
+    if (dados.gameId) dados.gameId = Number(dados.gameId);
+    if (dados.team1Id) dados.team1Id = Number(dados.team1Id);
+    if (dados.team2Id) dados.team2Id = Number(dados.team2Id);
+    if (dados.score1 !== undefined) dados.score1 = Number(dados.score1);
+    if (dados.score2 !== undefined) dados.score2 = Number(dados.score2);
+
+    try {
+        if (colecao === 'jogos') await atualizarJogo(id, dados);
+        else if (colecao === 'times') await atualizarTime(id, dados);
+        else if (colecao === 'competidores') await atualizarCompetidor(id, dados);
+        else if (colecao === 'confrontos') await atualizarConfronto(id, dados);
+
+        await carregarDados();
+        renderizarTudo();
+        fecharModal();
+    } catch (erro) {
+        alert('Erro ao atualizar: ' + erro.message);
+    }
+};
+
+// ========== EXCLUIR ==========
+window.excluirItem = async function (colecao, id) {
+    if (!confirm('Tem certeza que deseja excluir este item?')) return;
+
+    try {
+        if (colecao === 'jogos') await excluirJogo(id);
+        else if (colecao === 'times') await excluirTime(id);
+        else if (colecao === 'competidores') await excluirCompetidor(id);
+        else if (colecao === 'confrontos') await excluirConfronto(id);
+
+        await carregarDados();
+        renderizarTudo();
+    } catch (erro) {
+        alert('Erro ao excluir: ' + erro.message);
+    }
+};
